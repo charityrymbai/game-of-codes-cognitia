@@ -270,3 +270,27 @@
   background: rgba(139, 92, 246, 0.3);
   border-radius: 2px;
 }
+
+/* ─── Search highlight styles ─────────────────────────── */
+
+mark[data-search-highlight] {
+  background: transparent;
+  color: inherit;
+}
+
+.search-highlight {
+  background: rgba(250, 204, 21, 0.25) !important;
+  color: inherit !important;
+  border-radius: 2px;
+  padding: 1px 0;
+  box-decoration-break: clone;
+}
+
+.search-highlight-active {
+  background: rgba(251, 146, 60, 0.5) !important;
+  color: inherit !important;
+  border-radius: 2px;
+  padding: 1px 0;
+  box-shadow: 0 0 0 2px rgba(251, 146, 60, 0.4);
+  box-decoration-break: clone;
+}

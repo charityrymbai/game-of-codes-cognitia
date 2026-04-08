@@ -17,9 +17,12 @@ export default function DocsPanel() {
   const [searchQuery, setSearchQuery] = useState("");
   const [contentSearch, setContentSearch] = useState("");
   const [showContentSearch, setShowContentSearch] = useState(false);
+  const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
+  const [totalMatches, setTotalMatches] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const contentSearchRef = useRef<HTMLInputElement>(null);
+  const contentAreaRef = useRef<HTMLDivElement>(null);
 
   const loadDoc = useCallback(async (docPath: string) => {
     // Check cache first
@@ -112,12 +115,112 @@ export default function DocsPanel() {
       .filter((cat) => cat.entries.length > 0);
   }, [searchQuery]);
 
-  // Count content search matches
-  const contentMatchCount = useMemo(() => {
-    if (!contentSearch.trim() || !content) return 0;
-    const regex = new RegExp(contentSearch.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi");
-    return (content.match(regex) || []).length;
-  }, [contentSearch, content]);
+  // Highlight matches in the DOM
+  useEffect(() => {
+    if (!contentAreaRef.current) return;
+
+    // Clear previous highlights
+    const existingMarks = contentAreaRef.current.querySelectorAll("mark[data-search-highlight]");
+    existingMarks.forEach((mark) => {
+      const parent = mark.parentNode;
+      if (parent) {
+        parent.replaceChild(document.createTextNode(mark.textContent || ""), mark);
+        parent.normalize();
+      }
+    });
+
+    if (!contentSearch.trim()) {
+      setTotalMatches(0);
+      setCurrentMatchIndex(0);
+      return;
+    }
+
+    const escaped = contentSearch.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = new RegExp(escaped, "gi");
+
+    // Walk all text nodes and wrap matches with <mark>
+    const walker = document.createTreeWalker(
+      contentAreaRef.current,
+      NodeFilter.SHOW_TEXT,
+      null
+    );
+
+    const textNodes: Text[] = [];
+    let node: Node | null;
+    while ((node = walker.nextNode())) {
+      // Skip nodes inside <pre>, <code>, or already highlighted
+      if ((node as Text).textContent && regex.test((node as Text).textContent!)) {
+        textNodes.push(node as Text);
+      }
+      regex.lastIndex = 0;
+    }
+
+    let matchCount = 0;
+
+    textNodes.forEach((textNode) => {
+      const text = textNode.textContent || "";
+      const frag = document.createDocumentFragment();
+      let lastIndex = 0;
+      let match: RegExpExecArray | null;
+      const localRegex = new RegExp(escaped, "gi");
+
+      while ((match = localRegex.exec(text)) !== null) {
+        // Add text before match
+        if (match.index > lastIndex) {
+          frag.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
+        }
+        // Add highlighted match
+        const mark = document.createElement("mark");
+        mark.setAttribute("data-search-highlight", "");
+        mark.setAttribute("data-match-index", String(matchCount));
+        mark.textContent = match[0];
+        frag.appendChild(mark);
+        matchCount++;
+        lastIndex = localRegex.lastIndex;
+      }
+
+      // Add remaining text
+      if (lastIndex < text.length) {
+        frag.appendChild(document.createTextNode(text.slice(lastIndex)));
+      }
+
+      textNode.parentNode?.replaceChild(frag, textNode);
+    });
+
+    setTotalMatches(matchCount);
+    setCurrentMatchIndex((prev) => (matchCount > 0 ? Math.min(prev, matchCount - 1) : 0));
+  }, [contentSearch, content, loading]);
+
+  // Scroll to the currently active match
+  useEffect(() => {
+    if (!contentAreaRef.current || totalMatches === 0) return;
+
+    // Remove active class from all
+    contentAreaRef.current.querySelectorAll("mark[data-search-highlight]").forEach((el) => {
+      el.classList.remove("search-highlight-active");
+      el.classList.add("search-highlight");
+    });
+
+    // Add active class to current
+    const active = contentAreaRef.current.querySelector(
+      `mark[data-match-index="${currentMatchIndex}"]`
+    );
+    if (active) {
+      active.classList.remove("search-highlight");
+      active.classList.add("search-highlight-active");
+      active.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [currentMatchIndex, totalMatches]);
+
+  const goToNextMatch = useCallback(() => {
+    if (totalMatches === 0) return;
+    setCurrentMatchIndex((prev) => (prev + 1) % totalMatches);
+  }, [totalMatches]);
+
+  const goToPrevMatch = useCallback(() => {
+    if (totalMatches === 0) return;
+    setCurrentMatchIndex((prev) => (prev - 1 + totalMatches) % totalMatches);
+  }, [totalMatches]);
 
   const handleSelect = (entry: DocEntry) => {
     setSelectedPath(entry.path);
@@ -246,19 +349,47 @@ export default function DocsPanel() {
               type="text"
               placeholder="Search in document…"
               value={contentSearch}
-              onChange={(e) => setContentSearch(e.target.value)}
-              onKeyDown={(e) => e.key === "Escape" && (setShowContentSearch(false), setContentSearch(""))}
+              onChange={(e) => { setContentSearch(e.target.value); setCurrentMatchIndex(0); }}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") { setShowContentSearch(false); setContentSearch(""); }
+                if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); goToNextMatch(); }
+                if (e.key === "Enter" && e.shiftKey) { e.preventDefault(); goToPrevMatch(); }
+              }}
               className="w-full pl-8 pr-3 py-1.5 text-sm bg-muted/40 border border-border/30 rounded-md text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 transition-all"
             />
           </div>
-          {contentSearch && (
+          {contentSearch && totalMatches > 0 && (
             <span className="text-xs text-muted-foreground whitespace-nowrap">
-              {contentMatchCount} {contentMatchCount === 1 ? "match" : "matches"}
+              {currentMatchIndex + 1}/{totalMatches}
             </span>
           )}
+          {contentSearch && totalMatches === 0 && (
+            <span className="text-xs text-red-400 whitespace-nowrap">No results</span>
+          )}
+          <button
+            onClick={goToPrevMatch}
+            disabled={totalMatches === 0}
+            className="text-muted-foreground hover:text-foreground transition-colors p-0.5 disabled:opacity-30"
+            title="Previous match (Shift+Enter)"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+            </svg>
+          </button>
+          <button
+            onClick={goToNextMatch}
+            disabled={totalMatches === 0}
+            className="text-muted-foreground hover:text-foreground transition-colors p-0.5 disabled:opacity-30"
+            title="Next match (Enter)"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
           <button
             onClick={() => { setShowContentSearch(false); setContentSearch(""); }}
             className="text-muted-foreground hover:text-foreground transition-colors p-0.5"
+            title="Close search"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -268,7 +399,7 @@ export default function DocsPanel() {
       )}
 
       {/* Content Area */}
-      <div className="flex-1 overflow-auto px-5 py-4">
+      <div className="flex-1 overflow-auto px-5 py-4" ref={contentAreaRef}>
         {loading && (
           <div className="flex flex-col items-center justify-center h-full gap-3">
             <div className="w-8 h-8 border-3 border-purple-500 border-t-transparent rounded-full animate-spin" />

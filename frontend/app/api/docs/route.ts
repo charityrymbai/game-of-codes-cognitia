@@ -13,9 +13,28 @@ function stripFrontmatter(content: string): string {
   return content;
 }
 
-/** Remove MDN macro tags like {{APIRef}}, {{Compat}}, {{Specifications}}, etc. */
-function stripMacros(content: string): string {
-  return content.replace(/\{\{[^}]*\}\}/g, "");
+/** Resolve MDN macros to text instead of removing them entirely */
+function resolveMacros(content: string): string {
+  let result = content;
+
+  // Handle common xref macros: {{jsxref("path", "display")}} or {{domxref("path")}}
+  result = result.replace(
+    /\{\{\s*(?:jsxref|domxref|cssxref|htmlattrxref|HTMLElement|MathMLElement)\s*\(\s*(?:"|')([^"']+)(?:"|')\s*(?:,\s*(?:"|')([^"']+)(?:"|'))?[^}]*\}\}/gi,
+    (match, path, display) => {
+      const text = display || path;
+      if (match.toLowerCase().startsWith("{{htmlelement")) {
+        return `\`<${text}>\``;
+      }
+      // Often the path has slashes, e.g. "Math/PI". If no display text, use the last part.
+      const fallbackText = display ? display : path.split("/").pop();
+      return `\`${fallbackText}\``;
+    }
+  );
+
+  // Remove any remaining macros like {{APIRef}}, {{Compat}}, etc.
+  result = result.replace(/\{\{[^}]*\}\}/g, "");
+
+  return result;
 }
 
 /** Remove sections that aren't useful in-app */
@@ -44,7 +63,7 @@ function stripIrrelevantSections(content: string): string {
 
 function cleanContent(raw: string): string {
   let content = stripFrontmatter(raw);
-  content = stripMacros(content);
+  content = resolveMacros(content);
   content = stripIrrelevantSections(content);
   return content.trim();
 }

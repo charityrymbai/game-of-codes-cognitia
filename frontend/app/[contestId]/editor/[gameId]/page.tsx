@@ -17,16 +17,17 @@ import { javascript } from "@codemirror/lang-javascript";
 import { oneDark } from "@codemirror/theme-one-dark";
 
 type TabType = "html" | "css" | "js";
-type RightPanel = "preview" | "description" | "docs";
+type RightPanel = "preview" | "description" 
+// | "docs";
 
-const DocsPanel = dynamic(() => import("@/components/docs-panel"), {
-  loading: () => (
-    <div className="flex items-center justify-center h-full">
-      <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
-    </div>
-  ),
-  ssr: false,
-});
+// const DocsPanel = dynamic(() => import("@/components/docs-panel"), {
+//   loading: () => (
+//     <div className="flex items-center justify-center h-full">
+//       <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
+//     </div>
+//   ),
+//   ssr: false,
+// });
 
 export default function EditorPage() {
   const router = useRouter();
@@ -317,7 +318,7 @@ export default function EditorPage() {
             >
               📋 Problem
             </button>
-            <button
+            {/* <button
               onClick={() => setRightPanel("docs")}
               className={`flex items-center gap-1.5 px-5 py-3 text-sm font-medium transition-all border-b-2 ${
                 rightPanel === "docs"
@@ -326,7 +327,7 @@ export default function EditorPage() {
               }`}
             >
               📚 Docs
-            </button>
+            </button> */}
           </div>
 
           {/* Content */}
@@ -338,9 +339,11 @@ export default function EditorPage() {
                 sandbox="allow-scripts"
                 title="Preview"
               />
-            ) : rightPanel === "docs" ? (
-              <DocsPanel />
-            ) : (
+            ) 
+            // : rightPanel === "docs" ? (
+            //   <DocsPanel />
+            // )
+             : (
               <div className="p-6 overflow-auto h-full">
                 <h2 className="text-xl font-bold text-foreground mb-4">
                   {gameTitle}
