@@ -1,0 +1,272 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@layer base {
+  .theme {
+    --font-heading: var(--font-sans);
+    --font-sans: var(--font-sans);
+  }
+
+  :root {
+    --background: oklch(0.1 0.02 280);
+    --foreground: oklch(0.95 0.01 280);
+    --card: oklch(0.15 0.02 280);
+    --card-foreground: oklch(0.95 0.01 280);
+    --popover: oklch(0.15 0.02 280);
+    --popover-foreground: oklch(0.95 0.01 280);
+    --primary: oklch(0.7 0.2 280);
+    --primary-foreground: oklch(0.98 0 0);
+    --secondary: oklch(0.2 0.03 280);
+    --secondary-foreground: oklch(0.9 0.01 280);
+    --muted: oklch(0.2 0.02 280);
+    --muted-foreground: oklch(0.65 0.02 280);
+    --accent: oklch(0.7 0.2 280);
+    --accent-foreground: oklch(0.98 0 0);
+    --destructive: oklch(0.6 0.25 25);
+    --border: oklch(0.3 0.03 280);
+    --input: oklch(0.22 0.03 280);
+    --ring: oklch(0.7 0.2 280);
+    --chart-1: oklch(0.7 0.2 280);
+    --chart-2: oklch(0.65 0.18 320);
+    --chart-3: oklch(0.6 0.15 200);
+    --chart-4: oklch(0.55 0.12 160);
+    --chart-5: oklch(0.5 0.1 100);
+    --radius: 0.75rem;
+    --sidebar: oklch(0.12 0.02 280);
+    --sidebar-foreground: oklch(0.95 0.01 280);
+    --sidebar-primary: oklch(0.7 0.2 280);
+    --sidebar-primary-foreground: oklch(0.98 0 0);
+    --sidebar-accent: oklch(0.2 0.03 280);
+    --sidebar-accent-foreground: oklch(0.9 0.01 280);
+    --sidebar-border: oklch(0.3 0.03 280);
+    --sidebar-ring: oklch(0.7 0.2 280);
+  }
+
+  * {
+    border-color: var(--border);
+    outline-color: color-mix(in oklch, var(--ring) 50%, transparent);
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}
+
+/* ─── Custom animations ────────────────────────────────── */
+
+@keyframes gradient-shift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(139, 92, 246, 0.6);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 6s ease infinite;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.glass {
+  background: rgba(15, 15, 35, 0.6);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(139, 92, 246, 0.15);
+}
+
+.glass-card {
+  background: rgba(20, 20, 45, 0.7);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(139, 92, 246, 0.12);
+  transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+  border-color: rgba(139, 92, 246, 0.35);
+  box-shadow: 0 8px 32px rgba(139, 92, 246, 0.15);
+  transform: translateY(-2px);
+}
+
+/* CodeMirror theme overrides */
+.cm-editor {
+  height: 100% !important;
+  font-size: 14px;
+  background: transparent !important;
+}
+
+.cm-editor .cm-gutters {
+  background: rgba(10, 10, 30, 0.5) !important;
+  border-right: 1px solid rgba(139, 92, 246, 0.1) !important;
+}
+
+.cm-editor .cm-content {
+  padding: 8px 0;
+}
+
+.cm-editor .cm-activeLine {
+  background: rgba(139, 92, 246, 0.06) !important;
+}
+
+.cm-editor .cm-activeLineGutter {
+  background: rgba(139, 92, 246, 0.1) !important;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(10, 10, 30, 0.3);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 92, 246, 0.5);
+}
+
+/* ─── Docs panel prose overrides ──────────────────────── */
+
+.docs-prose {
+  --tw-prose-headings: oklch(0.95 0.01 280);
+  --tw-prose-body: oklch(0.8 0.02 280);
+  --tw-prose-links: oklch(0.75 0.18 280);
+  --tw-prose-code: oklch(0.85 0.12 320);
+  --tw-prose-pre-bg: rgba(10, 10, 30, 0.6);
+  --tw-prose-pre-code: oklch(0.85 0.02 280);
+  --tw-prose-bold: oklch(0.92 0.01 280);
+  --tw-prose-quotes: oklch(0.7 0.1 280);
+  --tw-prose-quote-borders: rgba(139, 92, 246, 0.4);
+  --tw-prose-hr: rgba(139, 92, 246, 0.2);
+  --tw-prose-th-borders: rgba(139, 92, 246, 0.2);
+  --tw-prose-td-borders: rgba(139, 92, 246, 0.1);
+}
+
+.docs-prose h1 {
+  font-size: 1.5rem;
+  background: linear-gradient(135deg, oklch(0.8 0.18 280), oklch(0.75 0.15 320));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 1rem;
+}
+
+.docs-prose h2 {
+  font-size: 1.2rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid rgba(139, 92, 246, 0.15);
+  margin-top: 1.5rem;
+}
+
+.docs-prose h3 {
+  font-size: 1.05rem;
+  color: oklch(0.85 0.08 280);
+}
+
+.docs-prose pre {
+  background: rgba(10, 10, 30, 0.6) !important;
+  border: 1px solid rgba(139, 92, 246, 0.12);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+.docs-prose code:not(pre code) {
+  background: rgba(139, 92, 246, 0.12);
+  border: 1px solid rgba(139, 92, 246, 0.1);
+  border-radius: 0.25rem;
+  padding: 0.15em 0.35em;
+  font-size: 0.85em;
+}
+
+.docs-prose a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.2s;
+}
+.docs-prose a:hover {
+  color: oklch(0.85 0.2 280);
+}
+
+.docs-prose blockquote {
+  border-left: 3px solid rgba(139, 92, 246, 0.4);
+  background: rgba(139, 92, 246, 0.05);
+  border-radius: 0 0.375rem 0.375rem 0;
+  padding: 0.75rem 1rem;
+}
+
+.docs-prose table {
+  width: 100%;
+}
+.docs-prose th {
+  background: rgba(139, 92, 246, 0.08);
+  text-align: left;
+}
+
+.docs-prose ul {
+  list-style-type: disc;
+}
+.docs-prose ol {
+  list-style-type: decimal;
+}
+
+/* Docs dropdown scroll */
+.docs-dropdown::-webkit-scrollbar {
+  width: 4px;
+}
+.docs-dropdown::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.3);
+  border-radius: 2px;
+}

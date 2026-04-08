@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Contest {
+  id       String    @id // 4-digit string code
+  name     String
+  status   Int       @default(0) // 0 = waiting, 1 = started
+  games    Game[]
+  sessions Session[]
+}
+
+model Game {
+  id          String       @id @default(cuid())
+  contestId   String
+  title       String
+  description String
+  contest     Contest      @relation(fields: [contestId], references: [id])
+  submissions Submission[]
+}
+
+model Session {
+  sessionId   String       @id
+  rollNo      String
+  contestId   String
+  isCheater   Boolean      @default(false)
+  isSubmitted Boolean      @default(false)
+  contest     Contest      @relation(fields: [contestId], references: [id])
+  submissions Submission[]
+
+  @@unique([rollNo, contestId])
+}
+
+model Submission {
+  id        String   @id @default(cuid())
+  sessionId String
+  gameId    String
+  html      String   @default("")
+  css       String   @default("")
+  js        String   @default("")
+  updatedAt DateTime @updatedAt
+  session   Session  @relation(fields: [sessionId], references: [sessionId])
+  game      Game     @relation(fields: [gameId], references: [id])
+
+  @@unique([sessionId, gameId])
+}
