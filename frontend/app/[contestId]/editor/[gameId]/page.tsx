@@ -338,6 +338,7 @@ export default function EditorPage() {
                 className="w-full h-full bg-white"
                 sandbox="allow-scripts"
                 title="Preview"
+                data-allow-anti-cheat-focus="true"
               />
             ) 
             // : rightPanel === "docs" ? (

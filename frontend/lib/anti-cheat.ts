@@ -10,6 +10,11 @@ interface UseAntiCheatOptions {
   enabled?: boolean;
 }
 
+const parsedDebounceMs = Number(process.env.NEXT_PUBLIC_ANTI_CHEAT_DEBOUNCE_MS || "2000");
+const ANTI_CHEAT_DEBOUNCE_MS = Number.isFinite(parsedDebounceMs) && parsedDebounceMs >= 0
+  ? parsedDebounceMs
+  : 2000;
+
 export function useAntiCheat({ onViolation, enabled = true }: UseAntiCheatOptions) {
   const violationCount = useRef(0);
 
@@ -42,22 +47,67 @@ export function useAntiCheat({ onViolation, enabled = true }: UseAntiCheatOption
     // Reset count on mount
     violationCount.current = 0;
 
+    let violationTimer: number | null = null;
+
+    const clearPendingViolation = () => {
+      if (violationTimer) {
+        window.clearTimeout(violationTimer);
+        violationTimer = null;
+      }
+    };
+
+    const scheduleViolationCheck = () => {
+      clearPendingViolation();
+      violationTimer = window.setTimeout(() => {
+        violationTimer = null;
+
+        if (document.visibilityState === "hidden") {
+          handleViolation();
+          return;
+        }
+
+        if (document.hasFocus()) {
+          return;
+        }
+
+        const activeElement = document.activeElement;
+        const isAllowedIframeFocus =
+          activeElement instanceof HTMLIFrameElement &&
+          activeElement.dataset.allowAntiCheatFocus === "true";
+
+        if (isAllowedIframeFocus) {
+          return;
+        }
+
+        handleViolation();
+      }, ANTI_CHEAT_DEBOUNCE_MS);
+    };
+
     const handleVisibilityChange = () => {
       if (document.visibilityState === "hidden") {
-        handleViolation();
+        scheduleViolationCheck();
+      } else {
+        clearPendingViolation();
       }
     };
 
     const handleBlur = () => {
-      handleViolation();
+      scheduleViolationCheck();
+    };
+
+    const handleFocus = () => {
+      clearPendingViolation();
     };
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
     window.addEventListener("blur", handleBlur);
+    window.addEventListener("focus", handleFocus);
 
     return () => {
+      clearPendingViolation();
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("blur", handleBlur);
+      window.removeEventListener("focus", handleFocus);
     };
   }, [enabled, handleViolation]);
 }
