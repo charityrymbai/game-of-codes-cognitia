@@ -74,7 +74,12 @@ export default function AdminContestPage() {
       setGames(gamesResult.games);
       setUsers(usersResult.users);
     } catch (error: unknown) {
-      if (error instanceof Error && 'status' in error && (error as { status: number }).status === 401) {
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "status" in error &&
+        (error as { status?: number }).status === 401
+      ) {
         clearAdminToken();
         router.replace("/admin");
       }
@@ -173,7 +178,7 @@ export default function AdminContestPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -273,7 +278,7 @@ export default function AdminContestPage() {
                   <textarea
                     value={newBoilerplateHtml}
                     onChange={(e) => setNewBoilerplateHtml(e.target.value)}
-                    placeholder="<div class=\"app\">\n  <!-- starter html -->\n</div>"
+                    placeholder={`<div class="app">\n  <!-- starter html -->\n</div>`}
                     rows={4}
                     className="w-full rounded-lg bg-background/50 border border-border/50 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-purple-500 focus:outline-none transition-colors resize-none font-mono"
                   />
