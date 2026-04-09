@@ -143,7 +143,13 @@ export class AdminPagesController {
   // POST /admin/contests/:id/games — add game
   static async postAddGame(req: Request, res: Response): Promise<void> {
     const contestId = req.params["id"] as string;
-    const { title, description } = req.body as { title?: string; description?: string };
+    const { title, description, boilerplateHtml, boilerplateCss, boilerplateJs } = req.body as {
+      title?: string;
+      description?: string;
+      boilerplateHtml?: string;
+      boilerplateCss?: string;
+      boilerplateJs?: string;
+    };
 
     if (!title || !description) {
       res.redirect(`/admin/contests/${contestId}?err=Title+and+description+are+required`);
@@ -151,7 +157,14 @@ export class AdminPagesController {
     }
 
     try {
-      await AdminService.addGame(contestId, title.trim(), description.trim());
+      await AdminService.addGame(
+        contestId,
+        title.trim(),
+        description.trim(),
+        boilerplateHtml ?? "",
+        boilerplateCss ?? "",
+        boilerplateJs ?? ""
+      );
       res.redirect(`/admin/contests/${contestId}?msg=Game+added+successfully`);
     } catch {
       res.redirect(`/admin/contests/${contestId}?err=Failed+to+add+game`);

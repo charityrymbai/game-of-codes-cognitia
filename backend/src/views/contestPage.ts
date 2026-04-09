@@ -147,6 +147,18 @@ export function renderContestPage(
           <input id="gameDesc" type="text" name="description" placeholder="Build a stunning landing page..." required />
         </div>
         <button type="submit" class="btn btn--primary">Add Game</button>
+        <div class="form-group" style="grid-column:1 / -1; margin-bottom:0;">
+          <label for="boilerplateHtml">Boilerplate HTML</label>
+          <textarea id="boilerplateHtml" name="boilerplateHtml" placeholder="&lt;div class=\"app\"&gt;&lt;/div&gt;" rows="5" style="width:100%; border:1px solid var(--border); border-radius:12px; background:rgba(255,255,255,0.03); color:var(--text); padding:10px 12px; font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size:13px;"></textarea>
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label for="boilerplateCss">Boilerplate CSS</label>
+          <textarea id="boilerplateCss" name="boilerplateCss" placeholder=".app {\n  display: flex;\n}" rows="5" style="width:100%; border:1px solid var(--border); border-radius:12px; background:rgba(255,255,255,0.03); color:var(--text); padding:10px 12px; font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size:13px;"></textarea>
+        </div>
+        <div class="form-group" style="margin-bottom:0; grid-column:span 2;">
+          <label for="boilerplateJs">Boilerplate JS</label>
+          <textarea id="boilerplateJs" name="boilerplateJs" placeholder="console.log('starter js');" rows="5" style="width:100%; border:1px solid var(--border); border-radius:12px; background:rgba(255,255,255,0.03); color:var(--text); padding:10px 12px; font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size:13px;"></textarea>
+        </div>
       </form>
     </div>
 

@@ -61,7 +61,14 @@ export async function getContestStatus(contestId: string) {
 
 export async function getGames(contestId: string, token: string) {
   return fetchApi<{
-    games: Array<{ id: string; title: string; description: string }>;
+    games: Array<{
+      id: string;
+      title: string;
+      description: string;
+      boilerplateHtml: string;
+      boilerplateCss: string;
+      boilerplateJs: string;
+    }>;
   }>(`/contests/${contestId}/games`, { token });
 }
 
@@ -142,7 +149,14 @@ export async function adminCreateContest(id: string, name: string, token: string
 
 export async function adminListGames(contestId: string, token: string) {
   return fetchApi<{
-    games: Array<{ id: string; title: string; description: string }>;
+    games: Array<{
+      id: string;
+      title: string;
+      description: string;
+      boilerplateHtml: string;
+      boilerplateCss: string;
+      boilerplateJs: string;
+    }>;
   }>(`/admin/contests/${contestId}/games`, { token });
 }
 
@@ -150,11 +164,46 @@ export async function adminAddGame(
   contestId: string,
   title: string,
   description: string,
+  boilerplateHtml: string,
+  boilerplateCss: string,
+  boilerplateJs: string,
   token: string
 ) {
   return fetchApi<{ id: string; title: string }>(`/admin/contests/${contestId}/games`, {
     method: "POST",
-    body: JSON.stringify({ title, description }),
+    body: JSON.stringify({
+      title,
+      description,
+      boilerplateHtml,
+      boilerplateCss,
+      boilerplateJs,
+    }),
+    token,
+  });
+}
+
+export async function adminUpdateGameBoilerplate(
+  contestId: string,
+  gameId: string,
+  boilerplateHtml: string,
+  boilerplateCss: string,
+  boilerplateJs: string,
+  token: string
+) {
+  return fetchApi<{
+    id: string;
+    title: string;
+    description: string;
+    boilerplateHtml: string;
+    boilerplateCss: string;
+    boilerplateJs: string;
+  }>(`/admin/contests/${contestId}/games/${gameId}/boilerplate`, {
+    method: "PATCH",
+    body: JSON.stringify({
+      boilerplateHtml,
+      boilerplateCss,
+      boilerplateJs,
+    }),
     token,
   });
 }

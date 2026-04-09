@@ -29,6 +29,15 @@ export const createContestSchema = z.object({
 export const createGameSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().min(1, "Description is required"),
+  boilerplateHtml: z.string().optional().default(""),
+  boilerplateCss: z.string().optional().default(""),
+  boilerplateJs: z.string().optional().default(""),
+});
+
+export const updateGameBoilerplateSchema = z.object({
+  boilerplateHtml: z.string().optional().default(""),
+  boilerplateCss: z.string().optional().default(""),
+  boilerplateJs: z.string().optional().default(""),
 });
 
 export const adminLoginSchema = z.object({
@@ -46,4 +55,5 @@ export type JoinContestInput = z.infer<typeof joinContestSchema>;
 export type SaveCodeInput = z.infer<typeof saveCodeSchema>;
 export type CreateContestInput = z.infer<typeof createContestSchema>;
 export type CreateGameInput = z.infer<typeof createGameSchema>;
+export type UpdateGameBoilerplateInput = z.infer<typeof updateGameBoilerplateSchema>;
 export type AdminLoginInput = z.infer<typeof adminLoginSchema>;

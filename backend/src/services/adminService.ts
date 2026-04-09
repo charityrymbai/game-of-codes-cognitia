@@ -52,15 +52,74 @@ export class AdminService {
   static async listGames(contestId: string) {
     return prisma.game.findMany({
       where: { contestId },
+      select: {
+        id: true,
+        contestId: true,
+        title: true,
+        description: true,
+        boilerplateHtml: true,
+        boilerplateCss: true,
+        boilerplateJs: true,
+      },
     });
   }
 
   /**
    * Add a game to a contest
    */
-  static async addGame(contestId: string, title: string, description: string) {
+  static async addGame(
+    contestId: string,
+    title: string,
+    description: string,
+    boilerplateHtml = "",
+    boilerplateCss = "",
+    boilerplateJs = ""
+  ) {
     return prisma.game.create({
-      data: { contestId, title, description },
+      data: {
+        contestId,
+        title,
+        description,
+        boilerplateHtml,
+        boilerplateCss,
+        boilerplateJs,
+      },
+    });
+  }
+
+  static async updateGameBoilerplate(
+    contestId: string,
+    gameId: string,
+    boilerplateHtml = "",
+    boilerplateCss = "",
+    boilerplateJs = ""
+  ) {
+    const updated = await prisma.game.updateMany({
+      where: {
+        id: gameId,
+        contestId,
+      },
+      data: {
+        boilerplateHtml,
+        boilerplateCss,
+        boilerplateJs,
+      },
+    });
+
+    if (updated.count === 0) {
+      throw new Error("Game not found");
+    }
+
+    return prisma.game.findUnique({
+      where: { id: gameId },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        boilerplateHtml: true,
+        boilerplateCss: true,
+        boilerplateJs: true,
+      },
     });
   }
 

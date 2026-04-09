@@ -71,30 +71,29 @@ export default function EditorPage() {
     }
   }, [contestId, router]);
 
-  // Fetch game info
+  // Restore code on load
   useEffect(() => {
-    const fetchGame = async () => {
+    const restore = async () => {
       const session = getSession();
       if (!session) return;
+
+      let starterCode = { html: "", css: "", js: "" };
+
       try {
         const result = await getGames(contestId, session.token);
         const game = result.games.find((g) => g.id === gameId);
         if (game) {
           setGameTitle(game.title);
           setGameDescription(game.description);
+          starterCode = {
+            html: game.boilerplateHtml || "",
+            css: game.boilerplateCss || "",
+            js: game.boilerplateJs || "",
+          };
         }
       } catch {
         // Silent
       }
-    };
-    fetchGame();
-  }, [contestId, gameId]);
-
-  // Restore code on load
-  useEffect(() => {
-    const restore = async () => {
-      const session = getSession();
-      if (!session) return;
 
       // Try localStorage first
       const local = getLocalCode(contestId, gameId);
@@ -110,9 +109,11 @@ export default function EditorPage() {
         if (serverCode[gameId]) {
           setCode(serverCode[gameId]);
           setLocalCode(contestId, gameId, serverCode[gameId]);
+        } else {
+          setCode(starterCode);
         }
       } catch {
-        // Start with empty
+        setCode(starterCode);
       }
       setLoaded(true);
     };

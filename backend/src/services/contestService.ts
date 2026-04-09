@@ -82,6 +82,9 @@ export class ContestService {
         id: true,
         title: true,
         description: true,
+        boilerplateHtml: true,
+        boilerplateCss: true,
+        boilerplateJs: true,
       },
     });
 

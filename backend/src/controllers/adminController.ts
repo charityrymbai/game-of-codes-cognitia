@@ -52,11 +52,42 @@ export class AdminController {
   static async addGame(req: Request, res: Response, next: NextFunction) {
     try {
       const id = req.params.id as string;
-      const { title, description } = req.body;
-      const game = await AdminService.addGame(id, title, description);
+      const { title, description, boilerplateHtml, boilerplateCss, boilerplateJs } = req.body;
+      const game = await AdminService.addGame(
+        id,
+        title,
+        description,
+        boilerplateHtml,
+        boilerplateCss,
+        boilerplateJs
+      );
       res.status(201).json(game);
     } catch (error) {
       next(error);
+    }
+  }
+
+  static async updateGameBoilerplate(req: Request, res: Response, next: NextFunction) {
+    try {
+      const contestId = req.params.id as string;
+      const gameId = req.params.gameId as string;
+      const { boilerplateHtml, boilerplateCss, boilerplateJs } = req.body;
+
+      const game = await AdminService.updateGameBoilerplate(
+        contestId,
+        gameId,
+        boilerplateHtml,
+        boilerplateCss,
+        boilerplateJs
+      );
+
+      res.json(game);
+    } catch (error: any) {
+      if (error.message === "Game not found") {
+        res.status(404).json({ error: error.message });
+      } else {
+        next(error);
+      }
     }
   }
 

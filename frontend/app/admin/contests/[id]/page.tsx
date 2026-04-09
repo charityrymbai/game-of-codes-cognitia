@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import {
   adminListGames,
   adminAddGame,
+  adminUpdateGameBoilerplate,
   adminGetUsers,
   adminStartContest,
 } from "@/lib/api";
@@ -19,6 +20,9 @@ interface Game {
   id: string;
   title: string;
   description: string;
+  boilerplateHtml: string;
+  boilerplateCss: string;
+  boilerplateJs: string;
 }
 
 interface User {
@@ -42,7 +46,15 @@ export default function AdminContestPage() {
   // Add game form
   const [newTitle, setNewTitle] = useState("");
   const [newDesc, setNewDesc] = useState("");
+  const [newBoilerplateHtml, setNewBoilerplateHtml] = useState("");
+  const [newBoilerplateCss, setNewBoilerplateCss] = useState("");
+  const [newBoilerplateJs, setNewBoilerplateJs] = useState("");
   const [adding, setAdding] = useState(false);
+  const [editingGameId, setEditingGameId] = useState<string | null>(null);
+  const [editBoilerplateHtml, setEditBoilerplateHtml] = useState("");
+  const [editBoilerplateCss, setEditBoilerplateCss] = useState("");
+  const [editBoilerplateJs, setEditBoilerplateJs] = useState("");
+  const [savingBoilerplate, setSavingBoilerplate] = useState(false);
 
   const token = typeof window !== "undefined" ? getAdminToken() : null;
 
@@ -82,10 +94,21 @@ export default function AdminContestPage() {
 
     setAdding(true);
     try {
-      await adminAddGame(contestId, newTitle, newDesc, token);
+      await adminAddGame(
+        contestId,
+        newTitle,
+        newDesc,
+        newBoilerplateHtml,
+        newBoilerplateCss,
+        newBoilerplateJs,
+        token
+      );
       toast.success("Game added!");
       setNewTitle("");
       setNewDesc("");
+      setNewBoilerplateHtml("");
+      setNewBoilerplateCss("");
+      setNewBoilerplateJs("");
       fetchData();
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : "Failed to add game");
@@ -104,6 +127,46 @@ export default function AdminContestPage() {
       toast.error(error instanceof Error ? error.message : "Failed to start");
     } finally {
       setStarting(false);
+    }
+  };
+
+  const openBoilerplateEditor = (game: Game) => {
+    setEditingGameId(game.id);
+    setEditBoilerplateHtml(game.boilerplateHtml || "");
+    setEditBoilerplateCss(game.boilerplateCss || "");
+    setEditBoilerplateJs(game.boilerplateJs || "");
+  };
+
+  const closeBoilerplateEditor = () => {
+    setEditingGameId(null);
+    setEditBoilerplateHtml("");
+    setEditBoilerplateCss("");
+    setEditBoilerplateJs("");
+  };
+
+  const handleSaveBoilerplate = async (gameId: string) => {
+    if (!token) return;
+    setSavingBoilerplate(true);
+
+    try {
+      const updated = await adminUpdateGameBoilerplate(
+        contestId,
+        gameId,
+        editBoilerplateHtml,
+        editBoilerplateCss,
+        editBoilerplateJs,
+        token
+      );
+
+      setGames((prev) =>
+        prev.map((game) => (game.id === gameId ? { ...game, ...updated } : game))
+      );
+      toast.success("Boilerplate updated");
+      closeBoilerplateEditor();
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Failed to update boilerplate");
+    } finally {
+      setSavingBoilerplate(false);
     }
   };
 
@@ -205,6 +268,36 @@ export default function AdminContestPage() {
                     className="w-full rounded-lg bg-background/50 border border-border/50 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-purple-500 focus:outline-none transition-colors resize-none"
                   />
                 </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Boilerplate HTML</Label>
+                  <textarea
+                    value={newBoilerplateHtml}
+                    onChange={(e) => setNewBoilerplateHtml(e.target.value)}
+                    placeholder="<div class=\"app\">\n  <!-- starter html -->\n</div>"
+                    rows={4}
+                    className="w-full rounded-lg bg-background/50 border border-border/50 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-purple-500 focus:outline-none transition-colors resize-none font-mono"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Boilerplate CSS</Label>
+                  <textarea
+                    value={newBoilerplateCss}
+                    onChange={(e) => setNewBoilerplateCss(e.target.value)}
+                    placeholder=".app {\n  display: flex;\n}"
+                    rows={4}
+                    className="w-full rounded-lg bg-background/50 border border-border/50 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-purple-500 focus:outline-none transition-colors resize-none font-mono"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Boilerplate JS</Label>
+                  <textarea
+                    value={newBoilerplateJs}
+                    onChange={(e) => setNewBoilerplateJs(e.target.value)}
+                    placeholder="console.log('starter js');"
+                    rows={4}
+                    className="w-full rounded-lg bg-background/50 border border-border/50 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-purple-500 focus:outline-none transition-colors resize-none font-mono"
+                  />
+                </div>
                 <Button
                   type="submit"
                   disabled={adding}
@@ -233,6 +326,71 @@ export default function AdminContestPage() {
                       <p className="text-xs text-muted-foreground/50 mt-2 font-mono">
                         ID: {game.id}
                       </p>
+                      <div className="mt-3 flex items-center gap-2">
+                        <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
+                          {game.boilerplateHtml || game.boilerplateCss || game.boilerplateJs
+                            ? "Boilerplate set"
+                            : "No boilerplate"}
+                        </Badge>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 text-xs"
+                          onClick={() => openBoilerplateEditor(game)}
+                        >
+                          Edit Boilerplate
+                        </Button>
+                      </div>
+
+                      {editingGameId === game.id && (
+                        <div className="mt-4 space-y-3 border border-border/40 rounded-xl p-4 bg-background/30">
+                          <div className="space-y-1.5">
+                            <Label className="text-xs text-muted-foreground">Boilerplate HTML</Label>
+                            <textarea
+                              value={editBoilerplateHtml}
+                              onChange={(e) => setEditBoilerplateHtml(e.target.value)}
+                              rows={4}
+                              className="w-full rounded-lg bg-background/60 border border-border/50 px-3 py-2 text-sm text-foreground focus:border-purple-500 focus:outline-none transition-colors resize-none font-mono"
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-xs text-muted-foreground">Boilerplate CSS</Label>
+                            <textarea
+                              value={editBoilerplateCss}
+                              onChange={(e) => setEditBoilerplateCss(e.target.value)}
+                              rows={4}
+                              className="w-full rounded-lg bg-background/60 border border-border/50 px-3 py-2 text-sm text-foreground focus:border-purple-500 focus:outline-none transition-colors resize-none font-mono"
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-xs text-muted-foreground">Boilerplate JS</Label>
+                            <textarea
+                              value={editBoilerplateJs}
+                              onChange={(e) => setEditBoilerplateJs(e.target.value)}
+                              rows={4}
+                              className="w-full rounded-lg bg-background/60 border border-border/50 px-3 py-2 text-sm text-foreground focus:border-purple-500 focus:outline-none transition-colors resize-none font-mono"
+                            />
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              onClick={() => handleSaveBoilerplate(game.id)}
+                              disabled={savingBoilerplate}
+                              className="bg-purple-600 hover:bg-purple-500 text-white"
+                            >
+                              {savingBoilerplate ? "Saving..." : "Save Boilerplate"}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={closeBoilerplateEditor}
+                              disabled={savingBoilerplate}
+                            >
+                              Cancel
+                            </Button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

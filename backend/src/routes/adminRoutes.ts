@@ -2,7 +2,12 @@ import { Router } from "express";
 import { AdminController } from "../controllers/adminController";
 import { adminMiddleware } from "../middlewares/adminMiddleware";
 import { validateBody } from "../middlewares/validateBody";
-import { adminLoginSchema, createContestSchema, createGameSchema } from "../schemas";
+import {
+	adminLoginSchema,
+	createContestSchema,
+	createGameSchema,
+	updateGameBoilerplateSchema,
+} from "../schemas";
 
 const router = Router();
 
@@ -23,6 +28,13 @@ router.get("/contests/:id/games", AdminController.listGames);
 
 // POST /api/admin/contests/:id/games
 router.post("/contests/:id/games", validateBody(createGameSchema), AdminController.addGame);
+
+// PATCH /api/admin/contests/:id/games/:gameId/boilerplate
+router.patch(
+	"/contests/:id/games/:gameId/boilerplate",
+	validateBody(updateGameBoilerplateSchema),
+	AdminController.updateGameBoilerplate
+);
 
 // GET /api/admin/contests/:id/users
 router.get("/contests/:id/users", AdminController.getUsers);
