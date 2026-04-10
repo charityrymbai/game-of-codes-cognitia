@@ -106,11 +106,6 @@ export default function LobbyPage() {
                   {getSession()?.rollNo || "---"}
                 </p>
               </div>
-
-              <div className="flex items-center justify-center gap-2 text-muted-foreground text-sm">
-                <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse" />
-                Polling every 2 seconds
-              </div>
             </>
           ) : (
             <>
